@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Human vs AI Essays: A Data Story</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--text:#1d2430;--muted:#5d6675;--line:#e2e6ec;--h:#2a6fbb;--a:#e8781a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--card:#1b212a;--text:#e8ecf2;--muted:#9aa4b2;--line:#2b333f;--h:#5aa2ee;--a:#ff9a4d;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#12161c;--card:#1b212a;--text:#e8ecf2;--muted:#9aa4b2;--line:#2b333f;--h:#5aa2ee;--a:#ff9a4d;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;line-height:1.55}
+main{max-width:1040px;margin:0 auto;padding:28px 18px 48px}
+h1{font-size:clamp(1.6rem,4vw,2.3rem);margin:0 0 8px;line-height:1.2}
+h2{font-size:1.15rem;margin:0 0 4px}
+.sub{color:var(--muted);margin:0 0 22px;max-width:70ch}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:600;color:#fff}
+.h{background:var(--h)}.a{background:var(--a)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.kpi .v{font-size:1.5rem;font-weight:700}
+.kpi .l{color:var(--muted);font-size:.85rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:14px}
+.note{color:var(--muted);font-size:.9rem;margin:2px 0 10px}
+.insight{border-left:3px solid var(--h);padding-left:10px;margin-top:10px;font-size:.92rem}
+.box{height:280px;position:relative}
+ul{padding-left:1.2rem;margin:8px 0 0}li{margin-bottom:6px}
+footer{color:var(--muted);font-size:.82rem;margin-top:22px}
+</style>
+</head>
+<body>
+<main>
+<h1>Can you tell a human essay from an AI one?</h1>
+<p class="sub">A look at 6,000 real student essays, labelled as written by a <span class="pill h">Human</span> or an <span class="pill a">AI</span>. I built simple text features and compared the two groups to see what really differs.</p>
+
+<div class="kpis" id="kpis"></div>
+
+<div class="grid">
+<div class="card"><h2>1. Humans write longer essays</h2><p class="note">Share of essays in each length range (%)</p><div class="box"><canvas id="c1"></canvas></div>
+<div class="insight">AI essays bunch up around 250 to 400 words. Human essays are spread out, with many running past 500.</div></div>
+
+<div class="card"><h2>2. Style habits differ</h2><p class="note">Average per essay, shown as % of the Human value</p><div class="box"><canvas id="c2"></canvas></div>
+<div class="insight">AI uses more commas and longer words, but shorter sentences. Humans write longer sentences with fewer commas.</div></div>
+
+<div class="card"><h2>3. Vocabulary variety overlaps a lot</h2><p class="note">Share of essays by unique-word ratio (%)</p><div class="box"><canvas id="c3"></canvas></div>
+<div class="insight">The two curves almost sit on top of each other. AI is only slightly higher, and part of that is because its essays are shorter.</div></div>
+
+<div class="card"><h2>4. Same topics, similar words</h2><p class="note">Top 10 words (stopwords removed), count of uses</p><div class="box"><canvas id="c4"></canvas></div>
+<div class="insight">Both groups talk about the same essay prompts. Humans lean on casual words like “just” and “like”.</div></div>
+</div>
+
+<div class="card" style="margin-top:14px">
+<h2>What this means for decisions</h2>
+<ul>
+<li><b>No single clue is enough.</b> Every feature overlaps between the groups, so judging an essay on length or commas alone would give false accusations.</li>
+<li><b>Teachers:</b> treat these patterns as a reason to look closer or talk to the student, not as proof.</li>
+<li><b>Detector builders:</b> combine several features (length, sentence length, commas, word length) rather than relying on one.</li>
+<li><b>Watch the data:</b> the sample is about 60% human, and both groups answer the same prompts, so topic words say little about style.</li>
+</ul></div>
+
+<footer>Data: DAIGT “LLM – Detect AI Generated Text” essays (Kaggle), random sample of 6,000 (seed 42), duplicates removed. Word length counts spaces, so it reads slightly high. Word-count bars group essays over 950 words into the last bar. Built with pandas and seaborn for the analysis; charts drawn with Chart.js.</footer>
+</main>
+<script>
+const D={"n": {"Human": 3616, "AI": 2384}, "mean": {"Human": {"wc": 419.27, "asl": 21.66, "commas": 14.28, "awl": 5.59, "uniq": 0.48}, "AI": {"wc": 330.34, "asl": 19.08, "commas": 19.76, "awl": 6.15, "uniq": 0.51}}, "wc_labels": ["0", "50", "100", "150", "200", "250", "300", "350", "400", "450", "500", "550", "600", "650", "700", "750", "800", "850", "900", "950"], "wc_hist": {"Human": [0.0, 0.0, 0.03, 7.83, 11.12, 12.33, 10.23, 11.26, 10.12, 9.1, 7.02, 5.45, 3.82, 2.96, 2.49, 1.66, 1.11, 1.41, 0.61, 1.47], "AI": [0.08, 0.34, 2.73, 4.57, 8.89, 19.17, 24.16, 20.26, 11.95, 4.11, 1.51, 0.88, 0.63, 0.59, 0.13, 0.0, 0.0, 0.0, 0.0, 0.0]}, "u_labels": ["0.2", "0.25", "0.3", "0.35", "0.4", "0.45", "0.5", "0.55", "0.6", "0.65", "0.7", "0.75", "0.8"], "u_hist": {"Human": [0.14, 1.11, 4.87, 10.95, 20.11, 23.09, 20.85, 11.5, 5.78, 1.3, 0.25, 0.0, 0.0], "AI": [0.0, 0.25, 1.89, 6.63, 18.62, 22.78, 18.5, 12.79, 10.36, 6.08, 1.8, 0.21, 0.08]}, "top": {"Human": [["students", 12545], ["people", 9971], ["school", 7776], ["car", 5115], ["like", 5034], ["cars", 4883], ["time", 4819], ["help", 4808], ["just", 4699], ["student", 4514]], "AI": [["students", 5709], ["like", 3331], ["car", 3159], ["people", 3108], ["help", 2913], ["school", 2811], ["time", 2627], ["electoral", 2378], ["make", 2374], ["college", 2362]]}};
+let charts=[];
+function css(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+function kpis(){
+  const m=D.mean,items=[
+    ['Essays analysed',(D.n.Human+D.n.AI).toLocaleString(),D.n.Human.toLocaleString()+' human · '+D.n.AI.toLocaleString()+' AI'],
+    ['Average length',m.Human.wc.toFixed(0)+' vs '+m.AI.wc.toFixed(0)+' words','Human vs AI'],
+    ['Commas per essay',m.Human.commas.toFixed(0)+' vs '+m.AI.commas.toFixed(0),'Human vs AI'],
+    ['Words per sentence',m.Human.asl.toFixed(0)+' vs '+m.AI.asl.toFixed(0),'Human vs AI']];
+  document.getElementById('kpis').innerHTML=items.map(i=>'<div class="card kpi"><div class="v">'+i[1]+'</div><div class="l">'+i[0]+' · '+i[2]+'</div></div>').join('');
+}
+function draw(){
+  charts.forEach(c=>c.destroy());charts=[];
+  const H=css('--h'),A=css('--a'),T=css('--muted'),L=css('--line');
+  Chart.defaults.color=T;Chart.defaults.font.family='system-ui,-apple-system,"Segoe UI",Roboto,sans-serif';
+  const sc=(xt,yt)=>({x:{title:{display:!!xt,text:xt},grid:{display:false}},y:{title:{display:!!yt,text:yt},grid:{color:L},beginAtZero:true}});
+  const ds=(o)=>[{label:'Human',data:o.Human,backgroundColor:H+'cc',borderColor:H},{label:'AI',data:o.AI,backgroundColor:A+'cc',borderColor:A}];
+  const opt=(s)=>({responsive:true,maintainAspectRatio:false,scales:s,plugins:{legend:{position:'bottom'}}});
+  const wl=D.wc_labels.slice();wl[wl.length-1]='950+';
+  charts.push(new Chart('c1',{type:'bar',data:{labels:wl,datasets:ds(D.wc_hist)},options:opt(sc('Words in essay','% of essays'))}));
+  const m=D.mean,pct=k=>[100,+(100*m.AI[k]/m.Human[k]).toFixed(0)];
+  const keys=[['wc','Length'],['asl','Sentence length'],['commas','Commas'],['awl','Word length']];
+  charts.push(new Chart('c2',{type:'bar',data:{labels:keys.map(k=>k[1]),datasets:[
+    {label:'Human',data:keys.map(k=>100),backgroundColor:H+'cc',borderColor:H},
+    {label:'AI',data:keys.map(k=>pct(k[0])[1]),backgroundColor:A+'cc',borderColor:A}]},options:opt(sc('','% of Human average'))}));
+  charts.push(new Chart('c3',{type:'line',data:{labels:D.u_labels,datasets:[
+    {label:'Human',data:D.u_hist.Human,borderColor:H,backgroundColor:H+'33',fill:true,tension:.35,pointRadius:2},
+    {label:'AI',data:D.u_hist.AI,borderColor:A,backgroundColor:A+'33',fill:true,tension:.35,pointRadius:2}]},options:opt(sc('Unique words ÷ total words','% of essays'))}));
+  const tw=D.top;
+  charts.push(new Chart('c4',{type:'bar',data:{labels:tw.Human.map((w,i)=>(i+1)+'. '+w[0]+' / '+tw.AI[i][0]),datasets:[
+    {label:'Human',data:tw.Human.map(w=>w[1]),backgroundColor:H+'cc'},{label:'AI',data:tw.AI.map(w=>w[1]),backgroundColor:A+'cc'}]},
+    options:Object.assign(opt({x:{grid:{color:L},beginAtZero:true,title:{display:true,text:'Uses'}},y:{grid:{display:false}}}),{indexAxis:'y'})}));
+}
+kpis();draw();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw);
+</script>
+</body>
+</html>
